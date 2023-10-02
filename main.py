@@ -1,6 +1,9 @@
 import time
 from fastapi import FastAPI
 
+#utils
+from utils import send_mail
+
 #connection to database
 from db_connection import engine, db_connection
 from sqlalchemy import select, insert
@@ -21,7 +24,6 @@ def get_match(match_id: int):
     with Session(engine) as session:
         for row in session.execute(stmt):
             return row[0]
-
 
 @app.post("/match")
 def create_match(date: str, slot: int):
@@ -57,10 +59,10 @@ def create_match(date: str, slot: int):
         response["status"] = "ok"
         response["message"] = "Match created"
         return response
-
     
 @app.post("/book_user")
 def create_match_user(date: str, slot: int, user_id: int):
+    send_mail = False
     #check if user exists
     stmt = select(User).where(User.id == user_id)
     with Session(engine) as session:
@@ -91,6 +93,8 @@ def create_match_user(date: str, slot: int, user_id: int):
             response["status"] = "error"
             response["message"] = "Match is full"
             return response
+        if len(result) == 3:
+            send_mail = True
     #check if user already booked this match
     stmt = select(MatchUser).where(MatchUser.match_id == match_id, MatchUser.user_id == user_id)
     with Session(engine) as session:
@@ -108,4 +112,15 @@ def create_match_user(date: str, slot: int, user_id: int):
         response = {}
         response["status"] = "ok"
         response["message"] = "User booked match"
+        response["details"] = {"date": date, "slot": slot}
+        if send_mail:
+            #obtain emails of all users
+            stmt = select(User).where(User.id == user_id)
+            with Session(engine) as session:
+                result =  session.execute(stmt).all()
+                emails = []
+                for row in result:
+                    emails.append(row[0].email)
+            for email in emails:
+                send_mail("Match successfully booked", "This email is to inform you that the match you booked is now full. Have fun!", email)
         return response
