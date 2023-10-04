@@ -4,3 +4,4 @@ uvicorn
 python-jose
 sqlalchemy
 psycopg2
+python-multipart
