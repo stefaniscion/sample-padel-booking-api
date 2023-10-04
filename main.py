@@ -18,12 +18,43 @@ from schemas.match_user import MatchUser
 app = FastAPI()
 
 
+@app.get("/match")
+def get_match_all():
+    stmt = select(Match)
+    with Session(engine) as session:
+        result =  session.execute(stmt)
+        details = []
+        for row in result:
+            details.append({"id": row[0].id, "date": row[0].date, "slot": row[0].slot})
+        if details:
+            response = {}
+            response["status"] = "ok"
+            response["message"] = "Match found"
+            response["details"] = details
+            return response
+        else:
+            response = {}
+            response["status"] = "error"
+            response["message"] = "No matche found"
+            return response
+
+
 @app.get("/match/{match_id}")
 def get_match(match_id: int):
     stmt = select(Match).where(Match.id == match_id)
     with Session(engine) as session:
-        for row in session.execute(stmt):
-            return row[0]
+        result =  session.execute(stmt).first()
+        if result:
+            response = {}
+            response["status"] = "ok"
+            response["message"] = "Match found"
+            response["details"] = {"id": result[0].id, "date": result[0].date, "slot": result[0].slot}
+            return response
+        else:
+            response = {}
+            response["status"] = "error"
+            response["message"] = "Match not found"
+            return response
 
 @app.post("/match")
 def create_match(date: str, slot: int):
@@ -94,7 +125,7 @@ def create_match_user(date: str, slot: int, user_id: int):
             response["message"] = "Match is full"
             return response
         if len(result) == 3:
-            send_mail = True
+            match_full = True
     #check if user already booked this match
     stmt = select(MatchUser).where(MatchUser.match_id == match_id, MatchUser.user_id == user_id)
     with Session(engine) as session:
@@ -113,7 +144,7 @@ def create_match_user(date: str, slot: int, user_id: int):
         response["status"] = "ok"
         response["message"] = "User booked match"
         response["details"] = {"date": date, "slot": slot}
-        if send_mail:
+        if match_full:
             #obtain emails of all users
             stmt = select(User).where(User.id == user_id)
             with Session(engine) as session:
