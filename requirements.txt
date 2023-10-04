@@ -1,4 +1,6 @@
-fastapi==0.98.*
-psycopg==3.1.*
-python-dotenv==1.0.*
-uvicorn==0.22.*
+fastapi
+python-dotenv
+uvicorn
+python-jose
+sqlalchemy
+psycopg2
