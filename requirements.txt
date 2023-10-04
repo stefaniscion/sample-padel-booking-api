@@ -1,7 +1,7 @@
-fastapi
-python-dotenv
-uvicorn
-python-jose
-sqlalchemy
-psycopg2
-python-multipart
+fastapi == 0.103.*
+python-dotenv == 1.0.0
+uvicorn == 0.23.*
+python-jose == 3.3.*
+sqlalchemy == 2.0.*
+psycopg2 == 2.9.*
+python-multipart == 0.0.*
