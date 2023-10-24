@@ -144,7 +144,6 @@ def create_match_user_me(date: str, slot: int, token: Annotated[str, Depends(oau
         response["status"] = "ok"
         response["message"] = "User booked match"
         response["details"] = {"date": date, "slot": slot}
-        match_full = True
         if match_full:
             #obtain emails of all users
             stmt = select(User).where(User.id == user_id)
