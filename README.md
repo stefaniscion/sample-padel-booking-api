@@ -17,4 +17,10 @@ to install the dependencies and then i run the application with:
 ```bash
 uvicorn main:app --reload
 ```
+
+## Testing
+to launch a test SMTP server you can use:
+```bash
+sudo python -m smtpd -c DebuggingServer -n localhost:1025
+```
 You can access to a swagger documentation in http://hostname:8000/docs

@@ -20,6 +20,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/token")
 # book routes   
 @router.post("/book_user")
 def create_match_user(date: str, slot: int, user_id: int, token: Annotated[str, Depends(oauth2_scheme)]):
+    '''book specified user in a existing match'''
     match_full = False
     #check if user exists
     stmt = select(User).where(User.id == user_id)
@@ -85,6 +86,7 @@ def create_match_user(date: str, slot: int, user_id: int, token: Annotated[str, 
     
 @router.post("/book_me")
 def create_match_user_me(date: str, slot: int, token: Annotated[str, Depends(oauth2_scheme)]):
+    '''book authenticated user in a existing match'''
     user_id = get_current_user(token)
     if user_id is None:
         response = {}
@@ -142,6 +144,7 @@ def create_match_user_me(date: str, slot: int, token: Annotated[str, Depends(oau
         response["status"] = "ok"
         response["message"] = "User booked match"
         response["details"] = {"date": date, "slot": slot}
+        match_full = True
         if match_full:
             #obtain emails of all users
             stmt = select(User).where(User.id == user_id)
