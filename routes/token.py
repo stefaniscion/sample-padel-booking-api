@@ -1,11 +1,11 @@
 from typing import Annotated
 import hashlib
 #fastapi
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 #db
 from db_connection import engine
-from sqlalchemy import select, insert
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 #schemas
 from schemas.user import User
@@ -21,6 +21,7 @@ def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     password = form_data.password
     password_md5 = hashlib.md5(password.encode()).hexdigest()
     stmt = select(User).where(User.username == username, User.password == password_md5)
+    token = None
     # return token if user is authenticated
     with Session(engine) as session:
         result =  session.execute(stmt).first()
@@ -29,7 +30,8 @@ def token(form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
             return {"access_token": token, "token_type": "bearer"}
     # if token is not authenticated, give error
     if not token:
-        response = {}
-        response["status"] = "error"
-        response["message"] = "User not authenticated"
-        return response
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
